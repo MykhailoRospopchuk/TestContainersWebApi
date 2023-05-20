@@ -19,7 +19,9 @@ namespace TestContainerWebApi
             builder.Services.AddSwaggerGen();
 
             string connection = builder.Configuration.GetConnectionString("DbConnectionString");
+
             builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connection));
+            builder.Services.AddDbContext<AdoDbContext>(options => options.UseSqlServer(connection));
 
             var app = builder.Build();
 
