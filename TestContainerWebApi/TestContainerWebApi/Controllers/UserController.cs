@@ -37,7 +37,6 @@ namespace TestContainerWebApi.Controllers
             {
                 return StatusCode(500, $"Internal server error: {e}");
             }
-            
         }
 
         // GET api/<UserController>/5
@@ -89,12 +88,6 @@ namespace TestContainerWebApi.Controllers
             {
                 return StatusCode(500, $"Internal server error: {e}");
             }
-        }
-
-        // DELETE api/<UserController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
         }
     }
 }

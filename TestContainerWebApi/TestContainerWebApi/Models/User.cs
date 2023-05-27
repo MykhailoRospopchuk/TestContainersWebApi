@@ -2,7 +2,7 @@
 {
     public class User
     {
-        private int _id;
+        private readonly int _id;
         private DateTimeOffset _created_at;
         private DateTimeOffset _updated_at;
 
@@ -17,9 +17,9 @@
         public DateTimeOffset CreatedAt { get {  return _created_at; } }
         public DateTimeOffset Updated_at { get { return _updated_at; } }
 
-        public void Update_User()
+        public void UpdateUser()
         {
-            _updated_at = DateTimeOffset.UtcNow;
+            _updated_at = new DateTimeOffset(DateTime.Now);
         }
     }
 }
