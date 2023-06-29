@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TestContainerWebApi.db;
 using TestContainerWebApi.Models;
+using TestContainerWebApi.Models.ModelDto;
 using TestContainerWebApi.Services;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace TestContainerWebApi.Controllers
 {
@@ -11,20 +11,21 @@ namespace TestContainerWebApi.Controllers
     [ApiController]
     public class UrlController : ControllerBase
     {
-        private readonly AdoDbContext _db_context;
+        private readonly AdoDbContext _dbContext;
 
         public UrlController(AdoDbContext db_context)
         {
-            _db_context = db_context;
+            _dbContext = db_context;
         }
-        // GET: api/<UrlController>
-        [HttpGet]
+
+        // GET: api/<UrlController>/get-all
+        [HttpGet("get-all")]
         public async Task<ActionResult<List<Url>>> GetAll()
         {
             try
             {
                 List<Url> result = new List<Url>();
-                result = await _db_context.GetAllUrl();
+                result = await _dbContext.GetAllUrl();
                 if (result == null)
                 {
                     return NotFound();
@@ -37,13 +38,13 @@ namespace TestContainerWebApi.Controllers
             }
         }
 
-        // GET api/<UrlController>/5
-        [HttpGet("{id}")]
+        // GET api/<UrlController>/get-one/5
+        [HttpGet("get-one/{id}")]
         public async Task<ActionResult<Url>> Get(int id)
         {
             try
             {
-                var result = await _db_context.GetUrl(id);
+                var result = await _dbContext.GetUrl(id);
                 if (result == null)
                 {
                     return NotFound();
@@ -56,25 +57,27 @@ namespace TestContainerWebApi.Controllers
             }
         }
 
-        // POST api/<UrlController>
-        [HttpPost]
-        public async Task<ActionResult<int>> Post(string original_url, int creator_id)
+        // POST api/<UrlController>/create
+        [HttpPost("create")]
+        public async Task<ActionResult<int>> Post([FromBody] UrlPostDto urlIncome)
         {
             bool condition = true;
             int url_id;
             string short_code = "";
+            string originalUrl = urlIncome.OriginalUrl;
+            int creatorId = urlIncome.CreatorId;
             try
             {
-                var check_user = _db_context.GetUser(creator_id);
+                var check_user = _dbContext.GetUser(creatorId);
                 if(check_user == null)
                 {
-                    return NotFound($"User with ID: {creator_id} not exist");
+                    return NotFound($"User with ID: {creatorId} not exist");
                 }
 
                 while (condition)
                 {
                     short_code = GenerateShort.GenerateShortUrl();
-                    Url is_exist = await _db_context.GetUrlByShort(short_code);
+                    Url is_exist = await _dbContext.GetUrlByShort(short_code);
                     if (is_exist == null)
                     {
                         condition = false;
@@ -82,7 +85,7 @@ namespace TestContainerWebApi.Controllers
                 }
 
                 Guid token = AccessTokenUrl.GenerateAccessToken();
-                url_id = await _db_context.CreateUrl(original_url, short_code, token, creator_id);
+                url_id = await _dbContext.CreateUrl(originalUrl, short_code, token, creatorId);
                 return Ok(url_id);
             }
             catch (Exception e)
@@ -91,16 +94,80 @@ namespace TestContainerWebApi.Controllers
             }
         }
 
-        // PUT api/<UrlController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        // PUT api/<UrlController>/update
+        [HttpPut("update")]
+        public async Task<ActionResult<Url>> Put([FromBody] UrlPutDto urlIncome)
         {
+            string newUrl = urlIncome.NewUrl;
+            int urlId = urlIncome.UrlId;
+            Guid secretAccessToken = urlIncome.SecretAccessToken;
+
+            try
+            {
+                Url urlToUpdate = await _dbContext.GetUrl(urlId);
+                if (urlToUpdate == null)
+                {
+                    return NotFound($"URL with ID: {urlId} not exist");
+                }
+                if (secretAccessToken != urlToUpdate.AccessToken)
+                {
+                    return BadRequest($"Wrong Secret Access Token");
+                }
+
+                urlToUpdate.UpdateUrl(newUrl);
+
+                var result = await _dbContext.UpdateUrl(urlToUpdate.Id, urlToUpdate.OriginalUrl, urlToUpdate.AccessToken, urlToUpdate.UpdatedAt);
+
+                if (result == null)
+                {
+                    return NotFound();
+                }
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Internal server error: {e}");
+            }
         }
 
-        // DELETE api/<UrlController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        // DELETE api/<UrlController>/delete
+        [HttpDelete("delete")]
+        public async Task<ActionResult<Url>> Delete([FromBody] DeleteUrlDto urlIncome)
         {
+            int urlId = urlIncome.UrlId;
+            Guid secretAccessToken = urlIncome.SecretAccessToken;
+
+            try
+            {
+                Url urlToDelete = await _dbContext.GetUrl(urlId);
+                if (urlToDelete == null)
+                {
+                    return NotFound($"URL with ID: {urlId} not exist");
+                }
+                if (secretAccessToken != urlToDelete.AccessToken)
+                {
+                    return BadRequest($"Wrong Secret Access Token");
+                }
+
+                if (urlToDelete.IsUrlDeleted())
+                {
+                    return Ok(urlToDelete);
+                }
+
+                urlToDelete.DeleteUrl();
+
+                var result = await _dbContext.DeleteUrl(urlToDelete.Id, urlToDelete.AccessToken, urlToDelete.DeletedAt);
+
+                if (result == null)
+                {
+                    return NotFound();
+                }
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Internal server error: {e}");
+            }
         }
     }
 }

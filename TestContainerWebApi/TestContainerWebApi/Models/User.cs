@@ -3,23 +3,23 @@
     public class User
     {
         private readonly int _id;
-        private DateTimeOffset _created_at;
-        private DateTimeOffset _updated_at;
+        private DateTimeOffset _createdAt;
+        private DateTimeOffset _updatedAt;
 
-        public User(int id, DateTimeOffset created_at, DateTimeOffset updated_at)
+        public User(int id, DateTimeOffset createdAt, DateTimeOffset updatedAt)
         {
             _id = id;
-            _created_at = created_at;
-            _updated_at = updated_at;
+            _createdAt = createdAt;
+            _updatedAt = updatedAt;
         }
 
         public int Id { get { return _id; } }
-        public DateTimeOffset CreatedAt { get {  return _created_at; } }
-        public DateTimeOffset Updated_at { get { return _updated_at; } }
+        public DateTimeOffset CreatedAt { get {  return _createdAt; } }
+        public DateTimeOffset Updated_at { get { return _updatedAt; } }
 
         public void UpdateUser()
         {
-            _updated_at = new DateTimeOffset(DateTime.Now);
+            _updatedAt = new DateTimeOffset(DateTime.Now);
         }
     }
 }

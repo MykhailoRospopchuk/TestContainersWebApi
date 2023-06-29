@@ -7,11 +7,11 @@ namespace TestContainerWebApi.db
 {
     public class AdoDbContext : DbContext
     {
-        private readonly string _con_str;
+        private readonly string _conStr;
 
         public AdoDbContext(DbContextOptions<AdoDbContext> options) : base(options)
         {
-            _con_str = Database.GetConnectionString();
+            _conStr = Database.GetConnectionString();
         }
 
         #region User
@@ -23,7 +23,7 @@ namespace TestContainerWebApi.db
                 SELECT * FROM users
                 """;
 
-            using (SqlConnection connection = new SqlConnection(_con_str))
+            using (SqlConnection connection = new SqlConnection(_conStr))
             {
                 await connection.OpenAsync();
 
@@ -39,8 +39,8 @@ namespace TestContainerWebApi.db
                     {
                         users.Add(new User(
                             id: Convert.ToInt32(reader["id"]),
-                            created_at: (DateTimeOffset)reader["created_at"],
-                            updated_at: (DateTimeOffset)reader["updated_at"]
+                            createdAt: (DateTimeOffset)reader["created_at"],
+                            updatedAt: (DateTimeOffset)reader["updated_at"]
                             ));
                     }
                 }
@@ -55,7 +55,7 @@ namespace TestContainerWebApi.db
                 WHERE id = @id
                 """;
 
-            using (SqlConnection connection = new SqlConnection(_con_str))
+            using (SqlConnection connection = new SqlConnection(_conStr))
             {
                 User result = null;
 
@@ -65,17 +65,12 @@ namespace TestContainerWebApi.db
                 await connection.OpenAsync();
                 using (SqlDataReader reader = await command.ExecuteReaderAsync())
                 {
-                    if (!reader.HasRows)
-                    {
-                        return null;
-                    }
-
-                    while (await reader.ReadAsync())
+                    if (await reader.ReadAsync())
                     {
                         result = new User(
                             id: Convert.ToInt32(reader["id"]),
-                            created_at: (DateTimeOffset)reader["created_at"],
-                            updated_at: (DateTimeOffset)reader["updated_at"]
+                            createdAt: (DateTimeOffset)reader["created_at"],
+                            updatedAt: (DateTimeOffset)reader["updated_at"]
                             );
                     }
                 }
@@ -94,7 +89,7 @@ namespace TestContainerWebApi.db
                 SET @id=SCOPE_IDENTITY();
                 """;
 
-            using (SqlConnection connection = new SqlConnection(_con_str))
+            using (SqlConnection connection = new SqlConnection(_conStr))
             {
                 using (SqlCommand cmd = new SqlCommand(sql_statements, connection))
                 {
@@ -128,7 +123,7 @@ namespace TestContainerWebApi.db
                 WHERE id = @id
                 """;
 
-            using (SqlConnection connection = new SqlConnection(_con_str))
+            using (SqlConnection connection = new SqlConnection(_conStr))
             {
                 using (SqlCommand cmd = new SqlCommand(sql_statements, connection))
                 {
@@ -139,17 +134,12 @@ namespace TestContainerWebApi.db
 
                     using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                     {
-                        if (!reader.HasRows)
-                        {
-                            return null;
-                        }
-                        
-                        while (await reader.ReadAsync())
+                        if (await reader.ReadAsync())
                         {
                             result = new User(
                             id: Convert.ToInt32(reader["id"]),
-                            created_at: (DateTimeOffset)reader["created_at"],
-                            updated_at: (DateTimeOffset)reader["updated_at"]
+                            createdAt: (DateTimeOffset)reader["created_at"],
+                            updatedAt: (DateTimeOffset)reader["updated_at"]
                             );
                         }
                     }
@@ -169,7 +159,7 @@ namespace TestContainerWebApi.db
                 SELECT * FROM urls
                 """;
 
-            using (SqlConnection connection = new SqlConnection(_con_str))
+            using (SqlConnection connection = new SqlConnection(_conStr))
             {
                 await connection.OpenAsync();
 
@@ -185,13 +175,13 @@ namespace TestContainerWebApi.db
                     {
                         url.Add(new Url(
                             id: Convert.ToInt32(reader["id"]),
-                            original_url: Convert.ToString(reader["original_url"]),
-                            short_url: Convert.ToString(reader["short_url"]),
-                            secret_access_token: Guid.Parse(reader["secret_access_token"].ToString()),
-                            created_at: (DateTimeOffset)reader["created_at"],
-                            creator_id: Convert.ToInt32(reader["created_by"]),
-                            updated_at: reader["updated_at"] == DBNull.Value ? null : (DateTimeOffset)reader["updated_at"],
-                            deleted_at: reader["deleted_at"] == DBNull.Value ? null : (DateTimeOffset)reader["deleted_at"]
+                            originalUrl: Convert.ToString(reader["original_url"]),
+                            shortUrl: Convert.ToString(reader["short_url"]),
+                            secretAccessToken: Guid.Parse(reader["secret_access_token"].ToString()),
+                            createdAt: (DateTimeOffset)reader["created_at"],
+                            creatorId: Convert.ToInt32(reader["created_by"]),
+                            updatedAt: reader["updated_at"] == DBNull.Value ? null : (DateTimeOffset)reader["updated_at"],
+                            deletedAt: reader["deleted_at"] == DBNull.Value ? null : (DateTimeOffset)reader["deleted_at"]
                             ));
                     }
                 }
@@ -206,7 +196,7 @@ namespace TestContainerWebApi.db
                 WHERE id = @id
                 """;
 
-            using (SqlConnection connection = new SqlConnection(_con_str))
+            using (SqlConnection connection = new SqlConnection(_conStr))
             {
                 Url result = null;
 
@@ -216,22 +206,17 @@ namespace TestContainerWebApi.db
                 await connection.OpenAsync();
                 using (SqlDataReader reader = await command.ExecuteReaderAsync())
                 {
-                    if (!reader.HasRows)
-                    {
-                        return null;
-                    }
-
-                    while (await reader.ReadAsync())
+                    if (await reader.ReadAsync())
                     {
                         result = new Url(
                             id: Convert.ToInt32(reader["id"]),
-                            original_url: Convert.ToString(reader["original_url"]),
-                            short_url: Convert.ToString(reader["short_url"]),
-                            secret_access_token: Guid.Parse(reader["secret_access_token"].ToString()),
-                            created_at: (DateTimeOffset)reader["created_at"],
-                            creator_id: Convert.ToInt32(reader["created_by"]),
-                            updated_at: reader["updated_at"] == DBNull.Value ? null : (DateTimeOffset)reader["updated_at"],
-                            deleted_at: reader["deleted_at"] == DBNull.Value ? null : (DateTimeOffset)reader["deleted_at"]
+                            originalUrl: Convert.ToString(reader["original_url"]),
+                            shortUrl: Convert.ToString(reader["short_url"]),
+                            secretAccessToken: Guid.Parse(reader["secret_access_token"].ToString()),
+                            createdAt: (DateTimeOffset)reader["created_at"],
+                            creatorId: Convert.ToInt32(reader["created_by"]),
+                            updatedAt: reader["updated_at"] == DBNull.Value ? null : (DateTimeOffset)reader["updated_at"],
+                            deletedAt: reader["deleted_at"] == DBNull.Value ? null : (DateTimeOffset)reader["deleted_at"]
                             );
                     }
                 }
@@ -246,7 +231,7 @@ namespace TestContainerWebApi.db
                 WHERE short_url = @short_url
                 """;
 
-            using (SqlConnection connection = new SqlConnection(_con_str))
+            using (SqlConnection connection = new SqlConnection(_conStr))
             {
                 Url result = null;
 
@@ -256,22 +241,17 @@ namespace TestContainerWebApi.db
                 await connection.OpenAsync();
                 using (SqlDataReader reader = await command.ExecuteReaderAsync())
                 {
-                    if (!reader.HasRows)
-                    {
-                        return null;
-                    }
-
-                    while (await reader.ReadAsync())
+                    if (await reader.ReadAsync())
                     {
                         result = new Url(
                             id: Convert.ToInt32(reader["id"]),
-                            original_url: Convert.ToString(reader["original_url"]),
-                            short_url: Convert.ToString(reader["short_url"]),
-                            secret_access_token: Guid.Parse(reader["secret_access_token"].ToString()),
-                            created_at: (DateTimeOffset)reader["created_at"],
-                            creator_id: Convert.ToInt32(reader["created_by"]),
-                            updated_at: reader["updated_at"] == DBNull.Value ? null : (DateTimeOffset)reader["updated_at"],
-                            deleted_at: reader["deleted_at"] == DBNull.Value ? null : (DateTimeOffset)reader["deleted_at"]
+                            originalUrl: Convert.ToString(reader["original_url"]),
+                            shortUrl: Convert.ToString(reader["short_url"]),
+                            secretAccessToken: Guid.Parse(reader["secret_access_token"].ToString()),
+                            createdAt: (DateTimeOffset)reader["created_at"],
+                            creatorId: Convert.ToInt32(reader["created_by"]),
+                            updatedAt: reader["updated_at"] == DBNull.Value ? null : (DateTimeOffset)reader["updated_at"],
+                            deletedAt: reader["deleted_at"] == DBNull.Value ? null : (DateTimeOffset)reader["deleted_at"]
                             );
                     }
                 }
@@ -279,26 +259,26 @@ namespace TestContainerWebApi.db
             }
         }
 
-        public async Task<int> CreateUrl(string original_url, string short_url, Guid secret_access_token, int creator_id)
+        public async Task<int> CreateUrl(string originalUrl, string shortUrl, Guid secretAccessToken, int creatorId)
         {
             int result;
-            DateTimeOffset created_at = new DateTimeOffset(DateTime.Now);
+            DateTimeOffset createdAt = new DateTimeOffset(DateTime.Now);
             
-            string sql_statements = """
+            string sqlStatements = """
                 INSERT INTO urls (original_url, short_url, secret_access_token, created_by, created_at)
                 VALUES (@original_url, @short_url, @secret_access_token, @created_by, @created_at);
                 SET @id=SCOPE_IDENTITY();
                 """;
 
-            using (SqlConnection connection = new SqlConnection(_con_str))
+            using (SqlConnection connection = new SqlConnection(_conStr))
             {
-                using (SqlCommand cmd = new SqlCommand(sql_statements, connection))
+                using (SqlCommand cmd = new SqlCommand(sqlStatements, connection))
                 {
-                    cmd.Parameters.AddWithValue("@original_url", original_url);
-                    cmd.Parameters.AddWithValue("@short_url", short_url);
-                    cmd.Parameters.AddWithValue("@secret_access_token", secret_access_token);
-                    cmd.Parameters.AddWithValue("@created_by", creator_id);
-                    cmd.Parameters.AddWithValue("@created_at", created_at);
+                    cmd.Parameters.AddWithValue("@originalUrl", originalUrl);
+                    cmd.Parameters.AddWithValue("@shortUrl", shortUrl);
+                    cmd.Parameters.AddWithValue("@secretAccessToken", secretAccessToken);
+                    cmd.Parameters.AddWithValue("@createdBy", creatorId);
+                    cmd.Parameters.AddWithValue("@createdAt", createdAt);
 
                     SqlParameter id_returning = new SqlParameter
                     {
@@ -316,6 +296,97 @@ namespace TestContainerWebApi.db
             }
             return result;
         }
+
+        public async Task<Url> UpdateUrl(int urlId, string newUrl, Guid secretAccessToken, DateTimeOffset? updatedAt)
+        {
+            Url result = null;
+
+            string sqlStatements = """
+                UPDATE urls
+                SET original_url = @newUrl,
+                    updated_at = @updatedAt
+                OUTPUT INSERTED.*
+                WHERE id = @urlId
+                    AND secret_access_token = @secretAccessToken;
+                """;
+
+            using (SqlConnection connection = new SqlConnection(_conStr))
+            {
+                using (SqlCommand cmd = new SqlCommand(sqlStatements, connection))
+                {
+                    cmd.Parameters.AddWithValue("@newUrl", newUrl);
+                    cmd.Parameters.AddWithValue("@updatedAt", updatedAt);
+                    cmd.Parameters.AddWithValue("@urlId", urlId);
+                    cmd.Parameters.AddWithValue("@secretAccessToken", secretAccessToken);
+
+                    await connection.OpenAsync();
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            result = new Url(
+                                id: Convert.ToInt32(reader["id"]),
+                                originalUrl: Convert.ToString(reader["original_url"]),
+                                shortUrl: Convert.ToString(reader["short_url"]),
+                                secretAccessToken: Guid.Parse(reader["secret_access_token"].ToString()),
+                                createdAt: (DateTimeOffset)reader["created_at"],
+                                creatorId: Convert.ToInt32(reader["created_by"]),
+                                updatedAt: reader["updated_at"] == DBNull.Value ? null : (DateTimeOffset)reader["updated_at"],
+                                deletedAt: reader["deleted_at"] == DBNull.Value ? null : (DateTimeOffset)reader["deleted_at"]
+                                );
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        public async Task<Url> DeleteUrl(int urlId, Guid secretAccessToken, DateTimeOffset? deletedAt)
+        {
+            Url result = null;
+
+            string sqlStatements = """
+                UPDATE urls
+                SET deleted_at = @deletedAt
+                OUTPUT INSERTED.*
+                WHERE id = @urlId
+                    AND secret_access_token = @secretAccessToken;
+                """;
+
+            using (SqlConnection connection = new SqlConnection(_conStr))
+            {
+                using (SqlCommand cmd = new SqlCommand(sqlStatements, connection))
+                {
+                    cmd.Parameters.AddWithValue("@deletedAt", deletedAt);
+                    cmd.Parameters.AddWithValue("@urlId", urlId);
+                    cmd.Parameters.AddWithValue("@secretAccessToken", secretAccessToken);
+
+                    await connection.OpenAsync();
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            result = new Url(
+                                id: Convert.ToInt32(reader["id"]),
+                                originalUrl: Convert.ToString(reader["original_url"]),
+                                shortUrl: Convert.ToString(reader["short_url"]),
+                                secretAccessToken: Guid.Parse(reader["secret_access_token"].ToString()),
+                                createdAt: (DateTimeOffset)reader["created_at"],
+                                creatorId: Convert.ToInt32(reader["created_by"]),
+                                updatedAt: reader["updated_at"] == DBNull.Value ? null : (DateTimeOffset)reader["updated_at"],
+                                deletedAt: reader["deleted_at"] == DBNull.Value ? null : (DateTimeOffset)reader["deleted_at"]
+                                );
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+
+
         #endregion Url
     }
 }
