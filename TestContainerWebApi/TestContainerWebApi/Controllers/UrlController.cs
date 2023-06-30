@@ -68,7 +68,7 @@ namespace TestContainerWebApi.Controllers
             int creatorId = urlIncome.CreatorId;
             try
             {
-                var check_user = _dbContext.GetUser(creatorId);
+                User check_user = await _dbContext.GetUser(creatorId);
                 if(check_user == null)
                 {
                     return NotFound($"User with ID: {creatorId} not exist");
@@ -146,7 +146,7 @@ namespace TestContainerWebApi.Controllers
                 }
                 if (secretAccessToken != urlToDelete.AccessToken)
                 {
-                    return BadRequest($"Wrong Secret Access Token");
+                    return BadRequest("Wrong Secret Access Token");
                 }
 
                 if (urlToDelete.IsUrlDeleted())
@@ -163,6 +163,27 @@ namespace TestContainerWebApi.Controllers
                     return NotFound();
                 }
                 return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Internal server error: {e}");
+            }
+        }
+
+        // GET api/<UrlController>/v1/{secretAccessToken}/stats.json
+        [HttpGet("v1/{secretAccessToken}/stats.json")]
+        public async Task<IActionResult> GetStats(Guid secretAccessToken)
+        {
+            try
+            {
+                List<ViewStat> result = new List<ViewStat>();
+
+                result = await _dbContext.GetViewStats(secretAccessToken);
+                if (result == null)
+                {
+                    return BadRequest("Wrong Secret Access Token");
+                }
+                return Ok( new { views_stats = result });
             }
             catch (Exception e)
             {

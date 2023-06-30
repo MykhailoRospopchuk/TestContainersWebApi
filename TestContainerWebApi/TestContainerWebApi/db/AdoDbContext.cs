@@ -266,7 +266,7 @@ namespace TestContainerWebApi.db
             
             string sqlStatements = """
                 INSERT INTO urls (original_url, short_url, secret_access_token, created_by, created_at)
-                VALUES (@original_url, @short_url, @secret_access_token, @created_by, @created_at);
+                VALUES (@originalUrl, @shortUrl, @secretAccessToken, @createdBy, @createdAt);
                 SET @id=SCOPE_IDENTITY();
                 """;
 
@@ -388,5 +388,110 @@ namespace TestContainerWebApi.db
 
 
         #endregion Url
+
+        #region View
+
+        public async Task<View> CreateView(int urlId)
+        {
+            View result = null;
+            DateTime viewAt = DateTime.Now;
+
+            string sqlStatements = """
+                MERGE INTO hour_views AS target
+                USING (VALUES (@urlId, DATEADD(HOUR, DATEDIFF(HOUR, 0, @viewAt), 0))) AS source (url_id, hour_time)
+                    ON target.url_id = source.url_id AND target.hour_time = source.hour_time
+                WHEN MATCHED THEN
+                    UPDATE SET target.count = target.count + 1
+                WHEN NOT MATCHED THEN
+                    INSERT (url_id, hour_time, count)
+                    VALUES (source.url_id, source.hour_time, 1)
+                OUTPUT inserted.*;
+                """;
+
+            using (SqlConnection connection = new SqlConnection(_conStr))
+            {
+                using (SqlCommand cmd = new SqlCommand(sqlStatements, connection))
+                {
+                    cmd.Parameters.AddWithValue("@urlId", urlId);
+                    cmd.Parameters.AddWithValue("@viewAt", viewAt);
+
+                    await connection.OpenAsync();
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            result = new View(
+                                urlId: Convert.ToInt32(reader["url_id"]),
+                                viewAt: (DateTime)reader["hour_time"],
+                                count: Convert.ToInt32(reader["count"])
+                                );
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        public async Task<List<ViewStat>> GetViewStats(Guid secretAccessToken)
+        {
+            List<ViewStat> viewStat = new List<ViewStat>();
+
+
+            string sql_statements = """
+                SELECT day_series.days AS [DAY],
+                    ISNULL(stats.[count], 0) AS [count]
+                FROM (
+                    SELECT DATEADD(DAY, DATEDIFF(DAY, 0, dd), 0) AS days
+                    FROM (
+                        SELECT TOP 36 ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 33 AS n
+                        FROM sys.columns AS c1
+                        CROSS JOIN sys.columns AS c2
+                    ) AS nums
+                    CROSS APPLY (
+                        SELECT DATEADD(DAY, nums.n, GETDATE()) AS dd
+                    ) AS dates
+                ) AS day_series
+                LEFT JOIN (
+                    SELECT CAST(DATEADD(DAY, DATEDIFF(DAY, 0, hour_time), 0) AS DATE) AS [DAY],
+                        SUM([count]) AS [count]
+                    FROM hour_views
+                    WHERE url_id = (
+                        SELECT id
+                        FROM urls
+                        WHERE secret_access_token = @token
+                    )
+                    AND hour_time >= DATEADD(MONTH, -1, GETDATE())
+                    GROUP BY CAST(DATEADD(DAY, DATEDIFF(DAY, 0, hour_time), 0) AS DATE)
+                ) AS stats ON day_series.days = stats.[DAY]
+                ORDER BY day_series.days;
+                """;
+
+            using (SqlConnection connection = new SqlConnection(_conStr))
+            {
+                await connection.OpenAsync();
+
+                SqlCommand command = new SqlCommand(sql_statements, connection);
+                command.Parameters.AddWithValue("@token", secretAccessToken);
+                using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                {
+                    if (!reader.HasRows)
+                    {
+                        return null;
+                    }
+
+                    while (await reader.ReadAsync())
+                    {
+                        viewStat.Add(new ViewStat(
+                            day: (DateTime)reader["DAY"],
+                            count: Convert.ToInt32(reader["count"])
+                            ));
+                    }
+                }
+            }
+            return viewStat;
+        }
+
+        #endregion View
     }
 }

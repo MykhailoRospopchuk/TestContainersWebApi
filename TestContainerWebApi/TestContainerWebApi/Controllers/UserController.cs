@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using TestContainerWebApi.db;
 using TestContainerWebApi.Models;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace TestContainerWebApi.Controllers
 {
@@ -12,11 +9,11 @@ namespace TestContainerWebApi.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly AdoDbContext _db_context;
+        private readonly AdoDbContext _dbContext;
 
-        public UserController(AdoDbContext db_context)
+        public UserController(AdoDbContext dbContext)
         {
-            _db_context = db_context;
+            _dbContext = dbContext;
         }
 
         // GET: api/<UserController>
@@ -26,7 +23,7 @@ namespace TestContainerWebApi.Controllers
             try
             {
                 List<User> result = new();
-                result = await _db_context.GetAllUsers();
+                result = await _dbContext.GetAllUsers();
                 if (result == null)
                 {
                     return NotFound();
@@ -45,7 +42,7 @@ namespace TestContainerWebApi.Controllers
         {
             try
             {
-                var result = await _db_context.GetUser(id);
+                var result = await _dbContext.GetUser(id);
                 if (result == null)
                 {
                     return NotFound();
@@ -65,7 +62,7 @@ namespace TestContainerWebApi.Controllers
             try
             {
                 int user_id;
-                user_id = await _db_context.CreateUser();
+                user_id = await _dbContext.CreateUser();
                 return Ok(user_id);
             }
             catch (Exception e)
@@ -81,7 +78,7 @@ namespace TestContainerWebApi.Controllers
             try
             {
                 User user;
-                user = await _db_context.UpdateUser(id);
+                user = await _dbContext.UpdateUser(id);
                 return Ok(user);
             }
             catch (Exception e)

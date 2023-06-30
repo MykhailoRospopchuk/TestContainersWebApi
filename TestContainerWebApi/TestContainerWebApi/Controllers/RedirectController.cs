@@ -27,11 +27,18 @@ namespace TestContainerWebApi.Controllers
                     return NotFound();
                 }
 
-                // TODO implement stats for redirecting 
-
+                
                 if (urlToRedirect.IsUrlDeleted())
                 {
                     return NotFound("This short URL has been removed");
+                }
+
+
+                View urlView = await _dbContext.CreateView(urlToRedirect.Id);
+
+                if (urlView == null)
+                {
+                    return NotFound("This short URL has problem with statistic");
                 }
 
                 return Redirect(urlToRedirect.OriginalUrl);
