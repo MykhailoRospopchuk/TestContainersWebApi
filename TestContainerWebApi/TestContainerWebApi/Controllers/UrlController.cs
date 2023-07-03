@@ -68,7 +68,7 @@ namespace TestContainerWebApi.Controllers
             int creatorId = urlIncome.CreatorId;
             try
             {
-                User check_user = await _dbContext.GetUser(creatorId);
+                UserDto check_user = await _dbContext.GetUser(creatorId);
                 if(check_user == null)
                 {
                     return NotFound($"User with ID: {creatorId} not exist");

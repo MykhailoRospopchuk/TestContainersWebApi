@@ -1,6 +1,8 @@
 
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using TestContainerWebApi.Auth;
 using TestContainerWebApi.db;
 
 namespace TestContainerWebApi
@@ -21,7 +23,19 @@ namespace TestContainerWebApi
             string connection = builder.Configuration.GetConnectionString("DbConnectionString");
 
             builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connection));
+            builder.Services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(connection));
             builder.Services.AddDbContext<AdoDbContext>(options => options.UseSqlServer(connection));
+
+
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.Cookie.Name = "TestAuth";
+                options.Cookie.HttpOnly = true;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Set the expiration time for the cookie
+                options.LoginPath = "/Account/Login"; // Redirect to the login page if unauthenticated
+                options.AccessDeniedPath = "/Account/Login"; // Redirect to the access denied page if unauthorized
+            });
 
             var app = builder.Build();
 
@@ -34,6 +48,7 @@ namespace TestContainerWebApi
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

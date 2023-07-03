@@ -1,14 +1,35 @@
-CREATE TABLE users (
+CREATE TABLE roleAuth(
     id INT IDENTITY (1, 1) NOT NULL,
-    created_at DATETIMEOFFSET NOT NULL,
-    updated_at DATETIMEOFFSET NOT NULL,
+    role VARCHAR(50) NOT NULL,
     PRIMARY KEY (id)
 );
 
-INSERT INTO users (created_at, updated_at)
-VALUES ('2023-04-12 12:00:00', '2023-04-12 12:00:00');
+INSERT INTO roleAuth (role)
+VALUES ('admin'),
+    ('manager'),
+    ('user');
 
 
+CREATE TABLE users (
+    id INT IDENTITY (1, 1) NOT NULL,
+    email VARCHAR(MAX) NOT NULL,
+    password VARCHAR(MAX) NOT NULL,
+    roleId INT NOT NULL,
+    created_at DATETIMEOFFSET NOT NULL,
+    updated_at DATETIMEOFFSET NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (roleId) REFERENCES roleAuth(id)
+);
+
+INSERT INTO users (email, password, roleId, created_at, updated_at)
+VALUES ('admin@gmail.com', '$HASH_PBKDF2v2$V1$Nhy/l9Qlq1T/eAtbM/wgIw==$B8bh+2+9SO0kku9thOPPL5dQwiPpSniPFN02scJOlfo=', 1, '2023-04-12 12:00:00', '2023-04-12 12:00:00'),
+    ('manager@gmail.com', '$HASH_PBKDF2v2$V1$MLheSYoEbBjnn6kPbmjqVg==$3Q3vO8Fpx6ykVIeiWPD6iWOMG9MqgGSqTyKRbH/wa7Q=', 2, '2023-04-12 12:00:00', '2023-04-12 12:00:00'),
+    ('user@gmail.com', '$HASH_PBKDF2v2$V1$pXDGAl2Bzi9vwjGob18HWw==$eCeUYGY7LOH+vyr9Ik4nWP94j1rKDmG3xe7G052/AlE=', 3, '2023-04-12 12:00:00', '2023-04-12 12:00:00');
+
+
+
+
+-- In the future, authenticate using OAUTH 2.0
 CREATE TABLE users_social_profiles (
     id INT IDENTITY (1, 1) NOT NULL,
     user_id INT NOT NULL,
@@ -68,9 +89,9 @@ INSERT INTO urls (
         created_at,
         created_by
     )
-VALUES ('https://fastapi.tiangolo.com/', '12345', 'a8098c1a-f86e-11da-bd1a-00112444be1e', '2023-04-12 12:00:00',  1),
-    ('https://plotly.com/graphing-libraries/', '54321', 'a8098c1a-f86e-11da-bd1a-00112444be2e', '2023-04-12 12:00:00', 1),
-    ('https://docs.pydantic.dev/', 'qwert', 'a8098c1a-f86e-11da-bd1a-00112444be3e', '2023-04-12 12:00:00', 1);
+VALUES ('https://fastapi.tiangolo.com/', '12345', 'a8098c1a-f86e-11da-bd1a-00112444be1e', '2023-04-12 12:00:00',  3),
+    ('https://plotly.com/graphing-libraries/', '54321', 'a8098c1a-f86e-11da-bd1a-00112444be2e', '2023-04-12 12:00:00', 3),
+    ('https://docs.pydantic.dev/', 'qwert', 'a8098c1a-f86e-11da-bd1a-00112444be3e', '2023-04-12 12:00:00', 3);
 
 CREATE TABLE prohibited_domain (
     id INT IDENTITY (1, 1) NOT NULL,

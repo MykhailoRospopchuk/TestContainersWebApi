@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using TestContainerWebApi.Models;
+using TestContainerWebApi.Models.ModelDto;
 
 namespace TestContainerWebApi.db
 {
@@ -16,9 +17,9 @@ namespace TestContainerWebApi.db
 
         #region User
 
-        public async Task<List<User>> GetAllUsers()
+        public async Task<List<UserDto>> GetAllUsers()
         {
-            List<User> users = new List<User>();
+            List<UserDto> users = new List<UserDto>();
             string sql_statements = """
                 SELECT * FROM users
                 """;
@@ -37,7 +38,7 @@ namespace TestContainerWebApi.db
 
                     while (await reader.ReadAsync())
                     {
-                        users.Add(new User(
+                        users.Add(new UserDto(
                             id: Convert.ToInt32(reader["id"]),
                             createdAt: (DateTimeOffset)reader["created_at"],
                             updatedAt: (DateTimeOffset)reader["updated_at"]
@@ -48,7 +49,7 @@ namespace TestContainerWebApi.db
             return users;
         }
 
-        public async Task<User> GetUser(int id)
+        public async Task<UserDto> GetUser(int id)
         {
             string sql_statements = """
                 SELECT * FROM users
@@ -57,7 +58,7 @@ namespace TestContainerWebApi.db
 
             using (SqlConnection connection = new SqlConnection(_conStr))
             {
-                User result = null;
+                UserDto result = null;
 
                 SqlCommand command = new SqlCommand(sql_statements, connection);
                 command.Parameters.AddWithValue("@id", id);
@@ -67,7 +68,7 @@ namespace TestContainerWebApi.db
                 {
                     if (await reader.ReadAsync())
                     {
-                        result = new User(
+                        result = new UserDto(
                             id: Convert.ToInt32(reader["id"]),
                             createdAt: (DateTimeOffset)reader["created_at"],
                             updatedAt: (DateTimeOffset)reader["updated_at"]
@@ -78,43 +79,9 @@ namespace TestContainerWebApi.db
             }
         }
 
-        public async Task<int> CreateUser()
+        public async Task<UserDto> UpdateUser(int id)
         {
-            int result;
-            DateTimeOffset created_at = new DateTimeOffset(DateTime.Now);
-            DateTimeOffset updated_at = new DateTimeOffset(DateTime.Now);
-            string sql_statements = """
-                INSERT INTO users (created_at, updated_at)
-                VALUES (@created_at, @updated_at);
-                SET @id=SCOPE_IDENTITY();
-                """;
-
-            using (SqlConnection connection = new SqlConnection(_conStr))
-            {
-                using (SqlCommand cmd = new SqlCommand(sql_statements, connection))
-                {
-                    cmd.Parameters.Add("@created_at", SqlDbType.DateTimeOffset).Value = created_at;
-                    cmd.Parameters.Add("@updated_at", SqlDbType.DateTimeOffset).Value = updated_at;
-                    SqlParameter id_returning = new SqlParameter
-                    {
-                        ParameterName = "@id",
-                        SqlDbType = SqlDbType.Int,
-                        Direction = ParameterDirection.Output
-                    };
-                    cmd.Parameters.Add(id_returning);
-                    
-                    await connection.OpenAsync();
-                    await cmd.ExecuteNonQueryAsync();
-
-                    result = Convert.ToInt32(id_returning.Value);
-                }
-            }
-            return result;
-        }
-
-        public async Task<User> UpdateUser(int id)
-        {
-            User result = null;
+            UserDto result = null;
             DateTimeOffset updated_at = new DateTimeOffset(DateTime.Now);
             string sql_statements = """
                 UPDATE users
@@ -136,7 +103,7 @@ namespace TestContainerWebApi.db
                     {
                         if (await reader.ReadAsync())
                         {
-                            result = new User(
+                            result = new UserDto(
                             id: Convert.ToInt32(reader["id"]),
                             createdAt: (DateTimeOffset)reader["created_at"],
                             updatedAt: (DateTimeOffset)reader["updated_at"]

@@ -1,12 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Data;
 using TestContainerWebApi.db;
-using TestContainerWebApi.Models;
+using TestContainerWebApi.Models.ModelDto;
 
 namespace TestContainerWebApi.Controllers
 {
 
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "manager")]
     public class UserController : ControllerBase
     {
         private readonly AdoDbContext _dbContext;
@@ -18,11 +21,11 @@ namespace TestContainerWebApi.Controllers
 
         // GET: api/<UserController>
         [HttpGet]
-        public async Task<ActionResult<List<User>>> GetAll()
+        public async Task<ActionResult<List<UserDto>>> GetAll()
         {
             try
             {
-                List<User> result = new();
+                List<UserDto> result = new();
                 result = await _dbContext.GetAllUsers();
                 if (result == null)
                 {
@@ -38,7 +41,7 @@ namespace TestContainerWebApi.Controllers
 
         // GET api/<UserController>/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> Get(int id)
+        public async Task<ActionResult<UserDto>> Get(int id)
         {
             try
             {
@@ -55,29 +58,13 @@ namespace TestContainerWebApi.Controllers
             }
         }
 
-        // POST api/<UserController>
-        [HttpPost]
-        public async Task<ActionResult<int>> Post()
-        {
-            try
-            {
-                int user_id;
-                user_id = await _dbContext.CreateUser();
-                return Ok(user_id);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, $"Internal server error: {e}");
-            }
-        }
-
         // PUT api/<UserController>/5
         [HttpPut("{id}")]
         public async Task<ActionResult<int>> Put(int id)
         {
             try
             {
-                User user;
+                UserDto user;
                 user = await _dbContext.UpdateUser(id);
                 return Ok(user);
             }
