@@ -34,7 +34,6 @@ namespace TestContainerWebApi.Controllers
             // find user
             UserAuth user = await _context.GetUserByEmailAuth(email);
 
-
             // if user not found, send 401
             if (user is null)
                 return Unauthorized("Access denied.  User is not registered.");
@@ -44,8 +43,10 @@ namespace TestContainerWebApi.Controllers
 
             await Authenticate(user);
 
-
-            return Ok(new { message = $"User with email: {email} and Role: {user.Role?.Name} successfully logged" });
+            return Ok(new { message = $"User with email: {email} and Role: {user.Role?.Name} successfully logged",
+                login = user.Email,
+                role = user.Role.Name
+            });
         }
 
 
@@ -84,21 +85,23 @@ namespace TestContainerWebApi.Controllers
                 if (userRole != null)
                 {
                     user.RoleId = userRole.Id;
-                     user.Role = userRole;
+                    user.Role = userRole;
                 }
 
                 int userId = await _context.CreateUserAuth(user);
 
-
                 await Authenticate(user);
+
+                return Ok(new { 
+                    message = $"User with email: {email} successfully registered",
+                    login = user.Email,
+                    role = user.Role.Name
+                });
             }
             else
             {
-
                 return Ok(new { message = "User is already registered" });
             }
-
-            return Ok(new { message = $"User with email: {email} successfully registered" });
         }
 
         private async Task Authenticate(UserAuth user)

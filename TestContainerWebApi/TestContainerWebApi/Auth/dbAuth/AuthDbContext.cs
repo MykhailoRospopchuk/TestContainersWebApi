@@ -186,7 +186,6 @@ namespace TestContainerWebApi.Auth.dbAuth
                             Id = reader.GetInt32("Id"),
                             Name = reader.GetString("role")
                         };
-
                     }
                 }
                 return result;

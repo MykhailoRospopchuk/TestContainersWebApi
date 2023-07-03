@@ -41,7 +41,8 @@ namespace TestContainerWebApi.db
                         users.Add(new UserDto(
                             id: Convert.ToInt32(reader["id"]),
                             createdAt: (DateTimeOffset)reader["created_at"],
-                            updatedAt: (DateTimeOffset)reader["updated_at"]
+                            updatedAt: (DateTimeOffset)reader["updated_at"],
+                            email: Convert.ToString(reader["email"])
                             ));
                     }
                 }
@@ -71,7 +72,8 @@ namespace TestContainerWebApi.db
                         result = new UserDto(
                             id: Convert.ToInt32(reader["id"]),
                             createdAt: (DateTimeOffset)reader["created_at"],
-                            updatedAt: (DateTimeOffset)reader["updated_at"]
+                            updatedAt: (DateTimeOffset)reader["updated_at"],
+                            email: Convert.ToString(reader["email"])
                             );
                     }
                 }
@@ -101,7 +103,8 @@ namespace TestContainerWebApi.db
                         result = new UserDto(
                             id: Convert.ToInt32(reader["id"]),
                             createdAt: (DateTimeOffset)reader["created_at"],
-                            updatedAt: (DateTimeOffset)reader["updated_at"]
+                            updatedAt: (DateTimeOffset)reader["updated_at"],
+                            email: Convert.ToString(reader["email"])
                             );
                     }
                 }
@@ -136,7 +139,8 @@ namespace TestContainerWebApi.db
                             result = new UserDto(
                             id: Convert.ToInt32(reader["id"]),
                             createdAt: (DateTimeOffset)reader["created_at"],
-                            updatedAt: (DateTimeOffset)reader["updated_at"]
+                            updatedAt: (DateTimeOffset)reader["updated_at"],
+                            email: Convert.ToString(reader["email"])
                             );
                         }
                     }
@@ -315,15 +319,16 @@ namespace TestContainerWebApi.db
         }
 
 
-        public async Task<int> CreateUrl(string originalUrl, string shortUrl, Guid secretAccessToken, int creatorId)
+        public async Task<Url> CreateUrl(string originalUrl, string shortUrl, Guid secretAccessToken, int creatorId)
         {
-            int result;
+            Url result = null;
+
             DateTimeOffset createdAt = new DateTimeOffset(DateTime.Now);
             
             string sqlStatements = """
                 INSERT INTO urls (original_url, short_url, secret_access_token, created_by, created_at)
-                VALUES (@originalUrl, @shortUrl, @secretAccessToken, @createdBy, @createdAt);
-                SET @id=SCOPE_IDENTITY();
+                OUTPUT INSERTED.*
+                VALUES (@originalUrl, @shortUrl, @secretAccessToken, @createdBy, @createdAt)
                 """;
 
             using (SqlConnection connection = new SqlConnection(_conStr))
@@ -336,18 +341,14 @@ namespace TestContainerWebApi.db
                     cmd.Parameters.AddWithValue("@createdBy", creatorId);
                     cmd.Parameters.AddWithValue("@createdAt", createdAt);
 
-                    SqlParameter id_returning = new SqlParameter
-                    {
-                        ParameterName = "@id",
-                        SqlDbType = SqlDbType.Int,
-                        Direction = ParameterDirection.Output
-                    };
-                    cmd.Parameters.Add(id_returning);
-
                     await connection.OpenAsync();
-                    await cmd.ExecuteNonQueryAsync();
-
-                    result = Convert.ToInt32(id_returning.Value);
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            result = RaderToUrl(reader);
+                        }
+                    }
                 }
             }
             return result;

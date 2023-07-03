@@ -62,10 +62,9 @@ namespace TestContainerWebApi.Controllers
 
         // POST api/<UrlAdminController>/create
         [HttpPost("create")]
-        public async Task<ActionResult<int>> Post([FromBody] UrlPostDto urlIncome)
+        public async Task<ActionResult<Url>> Post([FromBody] UrlPostDto urlIncome)
         {
             bool condition = true;
-            int url_id;
             string short_code = "";
             string originalUrl = urlIncome.OriginalUrl;
             int creatorId = 1;
@@ -88,8 +87,8 @@ namespace TestContainerWebApi.Controllers
                 }
 
                 Guid token = AccessTokenUrl.GenerateAccessToken();
-                url_id = await _dbContext.CreateUrl(originalUrl, short_code, token, creatorId);
-                return Ok(url_id);
+                var result = await _dbContext.CreateUrl(originalUrl, short_code, token, creatorId);
+                return Ok(result);
             }
             catch (Exception e)
             {
