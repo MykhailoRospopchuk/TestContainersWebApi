@@ -6,8 +6,5 @@ namespace TestContainerWebApi.Models.ModelDto
     {
         [Required(ErrorMessage = "Original URL not set")]
         public string OriginalUrl { get; set; }
-
-        [Required(ErrorMessage = "Id of Creator not set")]
-        public int CreatorId { get; set; }
     }
 }
