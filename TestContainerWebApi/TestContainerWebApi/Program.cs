@@ -1,8 +1,6 @@
-
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using TestContainerWebApi.Auth;
+using TestContainerWebApi.Auth.dbAuth;
 using TestContainerWebApi.db;
 
 namespace TestContainerWebApi

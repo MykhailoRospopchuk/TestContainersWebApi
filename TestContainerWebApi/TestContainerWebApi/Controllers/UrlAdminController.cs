@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Data;
 using TestContainerWebApi.db;
 using TestContainerWebApi.Models;
 using TestContainerWebApi.Models.ModelDto;
@@ -9,16 +11,17 @@ namespace TestContainerWebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UrlController : ControllerBase
+    [Authorize(Roles = "admin")]
+    public class UrlAdminController : ControllerBase
     {
         private readonly AdoDbContext _dbContext;
 
-        public UrlController(AdoDbContext db_context)
+        public UrlAdminController(AdoDbContext db_context)
         {
             _dbContext = db_context;
         }
 
-        // GET: api/<UrlController>/get-all
+        // GET: api/<UrlAdminController>/get-all
         [HttpGet("get-all")]
         public async Task<ActionResult<List<Url>>> GetAll()
         {
@@ -38,7 +41,7 @@ namespace TestContainerWebApi.Controllers
             }
         }
 
-        // GET api/<UrlController>/get-one/5
+        // GET api/<UrlAdminController>/get-one/5
         [HttpGet("get-one/{id}")]
         public async Task<ActionResult<Url>> Get(int id)
         {
@@ -57,7 +60,7 @@ namespace TestContainerWebApi.Controllers
             }
         }
 
-        // POST api/<UrlController>/create
+        // POST api/<UrlAdminController>/create
         [HttpPost("create")]
         public async Task<ActionResult<int>> Post([FromBody] UrlPostDto urlIncome)
         {
@@ -65,7 +68,7 @@ namespace TestContainerWebApi.Controllers
             int url_id;
             string short_code = "";
             string originalUrl = urlIncome.OriginalUrl;
-            int creatorId = urlIncome.CreatorId;
+            int creatorId = 1;
             try
             {
                 UserDto check_user = await _dbContext.GetUser(creatorId);
@@ -94,20 +97,19 @@ namespace TestContainerWebApi.Controllers
             }
         }
 
-        // PUT api/<UrlController>/update
+        // PUT api/<UrlAdminController>/update
         [HttpPut("update")]
         public async Task<ActionResult<Url>> Put([FromBody] UrlPutDto urlIncome)
         {
             string newUrl = urlIncome.NewUrl;
-            int urlId = urlIncome.UrlId;
             Guid secretAccessToken = urlIncome.SecretAccessToken;
 
             try
             {
-                Url urlToUpdate = await _dbContext.GetUrl(urlId);
+                Url urlToUpdate = await _dbContext.GetUrlBySecret(secretAccessToken);
                 if (urlToUpdate == null)
                 {
-                    return NotFound($"URL with ID: {urlId} not exist");
+                    return NotFound($"URL with toke: {secretAccessToken} not exist");
                 }
                 if (secretAccessToken != urlToUpdate.AccessToken)
                 {
@@ -130,19 +132,18 @@ namespace TestContainerWebApi.Controllers
             }
         }
 
-        // DELETE api/<UrlController>/delete
+        // DELETE api/<UrlAdminController>/delete
         [HttpDelete("delete")]
         public async Task<ActionResult<Url>> Delete([FromBody] DeleteUrlDto urlIncome)
         {
-            int urlId = urlIncome.UrlId;
             Guid secretAccessToken = urlIncome.SecretAccessToken;
 
             try
             {
-                Url urlToDelete = await _dbContext.GetUrl(urlId);
+                Url urlToDelete = await _dbContext.GetUrlBySecret(secretAccessToken);
                 if (urlToDelete == null)
                 {
-                    return NotFound($"URL with ID: {urlId} not exist");
+                    return NotFound($"URL with toke: {secretAccessToken} not exist");
                 }
                 if (secretAccessToken != urlToDelete.AccessToken)
                 {
@@ -170,7 +171,7 @@ namespace TestContainerWebApi.Controllers
             }
         }
 
-        // GET api/<UrlController>/v1/{secretAccessToken}/stats.json
+        // GET api/<UrlAdminController>/v1/{secretAccessToken}/stats.json
         [HttpGet("v1/{secretAccessToken}/stats.json")]
         public async Task<IActionResult> GetStats(Guid secretAccessToken)
         {

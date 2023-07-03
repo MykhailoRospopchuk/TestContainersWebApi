@@ -9,12 +9,12 @@ namespace TestContainerWebApi.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "manager")]
-    public class UserController : ControllerBase
+    [Authorize(Roles = "manager, admin")]
+    public class VisitorsAdminController : ControllerBase
     {
         private readonly AdoDbContext _dbContext;
 
-        public UserController(AdoDbContext dbContext)
+        public VisitorsAdminController(AdoDbContext dbContext)
         {
             _dbContext = dbContext;
         }
